@@ -37,7 +37,7 @@ int dataSmartEcl[3]; //Array that contains the 3 UNIX timestamp used in the smar
 String couleurComp[2] = {"255,72,0","255,255,255"};
 
 
-unsigned long utcOffsetInSeconds = 7200;
+unsigned long utcOffsetInSeconds = 3600;
 
 /*--------------------------------------------------------------------------------
 Variable that define the operating mode and the refresh time
@@ -146,19 +146,19 @@ void Alarme(){
     analogWrite(REDPIN, 0);
     analogWrite(GREENPIN, 0);
     analogWrite(BLUEPIN, 0);
-    //NRF24 transmit    ---------------------------A TESTER ---------------------------
-    String testCouleur = "rgb"; //List en string des 3 couleurs
-    for(int c = 0;c<=2;c++){ //On parcours cette liste
+    //NRF24 transmit
+    String testCouleur = "rgb"; //3 colors keyw ord string
+    for(int c = 0;c<=2;c++){
       String colorNRF = String(testCouleur[c]);
       colorNRF+=0;
-      uint8_t data[sizeof(colorNRF)]; //On créer une variable data qui est un tableau contenant le code integer de r,g,b suivie de 0
+      uint8_t data[sizeof(colorNRF)];//memory space that will contains the usingned int data of the word sent
       data[0] = uint8_t(colorNRF[0]);
       data[1] = uint8_t(colorNRF[1]);
-      //On envoie ensuite le tout par la liaison radio du N
+
+      //data sent
       nrf24.send(data, sizeof(testCouleur[c]+0));
       nrf24.waitPacketSent();
     }
-    //---------------------------A TESTER ---------------------------
 
   //Actual unix timestamp higher than time set
   }else if(timeClient.getEpochTime() >= WakeTime){
