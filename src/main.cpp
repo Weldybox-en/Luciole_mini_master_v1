@@ -22,7 +22,6 @@ Time constants for time management
 /*--------------------------------------------------------------------------------
 Pins number for the green, red and blue's MOFETS - REPLACE BY THE CORRECT ONES
 --------------------------------------------------------------------------------*/
-//Vert et bleu inversé stip marron
 #define REDPIN 4
 #define GREENPIN 16
 #define BLUEPIN 5
