@@ -21,17 +21,13 @@ Time constants for time management
 #define MDAY 24*MHOUR
 
 /*--------------------------------------------------------------------------------
-Pins number for the green, red and blue's MOFETS
+Pins number for the green, red and blue's MOFETS - REPLACE BY THE CORRECT ONES
 --------------------------------------------------------------------------------*/
-//#define REDPIN 13
-//#define GREENPIN 12
-//#define BLUEPIN 14
-
-
 //Vert et bleu inversé stip marron
 #define REDPIN 4
 #define GREENPIN 16
 #define BLUEPIN 5
+
 
 int dataSmartEcl[3]; //Array that contains the 3 UNIX timestamp used in the smart light mode.
 String couleurComp[2] = {"255,72,0","255,255,255"};
@@ -146,19 +142,19 @@ void Alarme(){
     analogWrite(REDPIN, 0);
     analogWrite(GREENPIN, 0);
     analogWrite(BLUEPIN, 0);
-    //NRF24 transmit    ---------------------------A TESTER ---------------------------
-    String testCouleur = "rgb"; //List en string des 3 couleurs
-    for(int c = 0;c<=2;c++){ //On parcours cette liste
+    //NRF24 transmit
+    String testCouleur = "rgb"; //string that contains the r, g and b key words
+    for(int c = 0;c<=2;c++){
       String colorNRF = String(testCouleur[c]);
       colorNRF+=0;
-      uint8_t data[sizeof(colorNRF)]; //On créer une variable data qui est un tableau contenant le code integer de r,g,b suivie de 0
+      uint8_t data[sizeof(colorNRF)];//memory space that will contains the usingned int data of the word sent
       data[0] = uint8_t(colorNRF[0]);
       data[1] = uint8_t(colorNRF[1]);
-      //On envoie ensuite le tout par la liaison radio du N
+
+      //data sent
       nrf24.send(data, sizeof(testCouleur[c]+0));
       nrf24.waitPacketSent();
     }
-    //---------------------------A TESTER ---------------------------
 
   //Actual unix timestamp higher than time set
   }else if(timeClient.getEpochTime() >= WakeTime){
