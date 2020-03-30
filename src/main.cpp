@@ -77,6 +77,7 @@ HTTPClient http; //HTTP to emit request
 RH_NRF24 nrf24(10, 15); //NRF object CE and CSN declaration
 
 
+
 /*--------------------------------------------------------------------------------
 OTA function
 --------------------------------------------------------------------------------*/
@@ -655,7 +656,7 @@ void setup() {
   if (!nrf24.init())
   Serial.println("init failed");
   // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
-  if (!nrf24.setChannel(1))
+  if (!nrf24.setChannel(1)) //We are communicating on the channel 1, you can go up to 125 channels
     Serial.println("setChannel failed");
   if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
     Serial.println("setRF failed");
