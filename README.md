@@ -1,14 +1,14 @@
 # Luciole_mini_slave_v1
 
-Luciole is an RGB controller controlled though WIFI. No need extra applications because the board carry a Webserver. Luciole has multiple operating mode in addition to the basics functionalities that you can find in a classic RGB controller. The goal with this board is to provide and very simple way to control RGB LED for a very low price.
+Luciole is an RGB controller controlled though WIFI. No need extra applications because the board carry a Webserver. Luciole has multiple operating mode in addition to the basics functionalities that you can find in a classic RGB controller. The goal with this board is to provide and very simple and lowcost way to control RGB LED.
 
-The Luciole_mini_slave_v1 is simpler than the master one. In fact, it just need to wait for informations sent from the master and use them to command each LEDs.
+The Luciole_mini_master_v1 is very important. It work like the luciole classic, but each time he change his colors, he will send messages to any slaves that listen to the same channel thanks to an NRF24 module.
 
 <p  align="center">
 <a href="https://www.tindie.com/stores/julfi/?ref=offsite_badges&utm_source=sellers_julfi&utm_medium=badges&utm_campaign=badge_medium"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-mediums.png" alt="I sell on Tindie" width="150" height="78"></a>
 </p>
 
-<p align="center"><i>Overview of the board that i sell with this code.</i></p>
+<p align="center"><i>Overview of the board that i <b>will</b> sell with this code.</i></p>
 <p align="center">
   <img src="https://imgur.com/SNt15PF.jpg" width="500">
 </p>
@@ -17,7 +17,8 @@ The Luciole_mini_slave_v1 is simpler than the master one. In fact, it just need 
 
 
 # Contents
-
+- [Webserver quick view](#webserver-quick-view)
+- [Goals](#goals)
 - [Implementation](#implementation)
   - [Librairy](#librairy)
   - [Flashing ESP8266](#flashing-esp8266)
@@ -27,23 +28,66 @@ The Luciole_mini_slave_v1 is simpler than the master one. In fact, it just need 
 - [My networks](#my-networks)
 - [Support me](#support-me)
 
+# Webserver quick view
+
+The webserver looked like this :
+
+<p align="center">
+  <img src="https://imgur.com/XMOOdEB.jpg" width="300">
+  <img src="https://imgur.com/52pnw5x.jpg" width="300">
+</p>
+
+
+The frist page is the most important because all the functionalities can be reach from here while the second is simply the alarm settings.
+
+# Goals
+
+All the goals that i want to be implemented/is implemented on luciole's board.
+
+- [x] Any color selection **w/Brightness**
+- [x] Color storing **(up to 5)**
+- [x] Smart light **/w colors settings**
+- [x] Alarm light
+- [x] RF master/slave communication
 
 # Implementation
 
 ## Librairy
 
-The code is really simple and need just one librairy to work, it's the Radiohead one! You can download it manually [here](https://github.com/sparkfun/SparkFun_RadioHead_Arduino_Library) or simply use the librairy manager.
+In order to make luciole working there is some things to do. Firstly, luciole use some librairy that i have manually modified to fit perfectly with the app.
 
-In addition the librairy i want to attract you attention on the LEDs pins declaration. These can be differents depending on the LED strip configuration that you have.
+Here is the links of the two modified librairy that you need to make it work:
+- [WiFiManagerByjulfi](https://github.com/Weldybox-en/WiFiManagerByjulfi)
+- [NTPClientByjulfi](https://github.com/Weldybox-en/NTPClientByjulfi)
+
+
+ Here is the librairy list that you have to had:
 
 ```cpp
+#include <Arduino.h>
+#include <ESP8266WiFi.h>
+#include <EEPROM.h>
+#include <ArduinoOTA.h>
 #include <SPI.h>
-#include <RH_NRF24.h>
-
-#define REDPIN 4
-#define GREENPIN 5
-#define BLUEPIN 16
+#include <WebSocketsServer.h>
+#include <ESP8266WebServer.h>
+#include <FS.h>
+#include <ArduinoJson.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiUdp.h>
+#include <NTPClientByjulfi.h>
+#include <WiFiManagerByWeldy.h>
 ```
+## Timezone settings
+
+For the moment there is no way to modify your time zone though the user interface. By default it's set at UTC+1 and this setting is given thanks to the NTPClientByjulfi librairy.
+
+The unique way to do it is by attribut you utc shift value in the utcOffsetInSeconds variable.
+
+```cpp
+unsigned long utcOffsetInSeconds = "your utc shift" ;
+```
+For me in France, the winter utc shift is *__3600__* and the summer is *__7200__*. I invite you to test and modify it according to your timezone.
 
 ## Flashing ESP8266
 
@@ -81,9 +125,7 @@ esptool.py --port <your_ESP_port> erase_flash
 
 ### Arduino IDE
 
-Using arduino IDE is pretty straight forward comparing to the master's code. Just copy the code from */src/main.cpp* and past it in your Arduino IDE sketch.
-
-Just make sure that you have all the necessary things to upload the code into an ESP8266. See the screen below :
+Using arduino IDE harder but it's possible. Just make sure that you have all the necessary things to upload the code into an ESP8266. See the screen below :
 
 <p align="center">
   <img src="https://imgur.com/P5R15kP.jpg" width="420">
@@ -91,51 +133,48 @@ Just make sure that you have all the necessary things to upload the code into an
 
 </p>
 
+Copy the code found in the <i>src/main.cpp</i> and make sure to have all the labrairies on your arduino librairy folder. To upload , select "LOLIN(WEMOS) D1 R2 & mini" esp8266 type of board the FTDI programmation port.
+
 
 # How it works?
 
-In this section we will rapidly see how the code works. This one is based on the basic emitter/transmitter NRF24 example. I've not touched to the void setup() function, so i will not write about it here.
+In this section we will rapidly see how the code works. Because i've already make a documentation about the main features of the luciole project i invite to [see](https://github.com/Weldybox-en/Luciole-v1.0/blob/master/README.md) it if your not aware about what we are talking about. Here i will only write about the new feature relative to the NRF24 radio module that come with this version.
 
-The void loop() function though is quite interesting to review. The first part is about testing if the NRF24 is working and building a buffer that will contains the received data.
+This one is based on the basic emitter/transmitter NRF24 example. I've not touched the void setup() function. In fact, this one is pretty simple, the program will test whether or not the board is ready to go and then set his communication channel to 1.
 ```cpp
-  if (nrf24.available())
-  {
-    //Buffer with a length as long as the max message length from NRF24
-    uint8_t buf[RH_NRF24_MAX_MESSAGE_LEN];
-    uint8_t len = sizeof(buf);
-```
-Then we test if we are receiving something.
-```cpp
-    if (nrf24.recv(buf, &len))
-    {
-```
-And finally, we stock the data under a string type and we categorized the message received. The first char show which color is concerned by the folowings.
+  if (!nrf24.init())
+  Serial.println("init failed"); // Defaults after init are 2.402 GHz (channel 2), 2Mbps, 0dBm
 
-For example, messages that asking to display a white color will look like this:
+  if (!nrf24.setChannel(1)) //We are communicating on the channel 1, you can go up to 125 channels
+    Serial.println("setChannel failed");
+  if (!nrf24.setRF(RH_NRF24::DataRate2Mbps, RH_NRF24::TransmitPower0dBm))
+    Serial.println("setRF failed");
+}
 ```
-r255
-g255
-b255
-```
-So it is in the next three chars where the useful information is taken by and wrote on the analog pins.
-```cpp
-   String str((char*)buf);
+Finally, we will focus on sending the data each time the LED's color change. The fiew lines bellow are thus placed each time we wan't to update the slave's color.
 
-      for(int i = 0; i<len; i++){
-        //Then we test the first char to determine whether it's a message for the red, green or blue color
-        if(buf[i] == 'r'){
-          Serial.print("rouge = ");
-          analogWrite(REDPIN, (str.substring(i+1,i+4)).toInt());
-          Serial.println(str.substring(i+1,i+4)); //debug print
-        }if(buf[i] == 'g'){
-          Serial.print("vert = ");
-          analogWrite(GREENPIN, (str.substring(i+1,i+4)).toInt());
-          Serial.println(str.substring(i+1,i+4)); //debug print
-        }if(buf[i] == 'b'){
-          Serial.print("bleu = ");
-          analogWrite(BLUEPIN, (str.substring(i+1,i+4)).toInt());
-          Serial.println(str.substring(i+1,i+4)); //debug print
+```cpp
+//NRF24 transmit
+int colorValArray[3] = {red, green, blue}; //int color array
+String colorNameArray = "rgb"; //string that contains the r, g and b key words
+
+for(int c = 0;c<=2;c++){
+   String colorNRF = String(colorNameArray[c]);
+   colorNRF += colorValArray[c];
+   uint8_t data[sizeof(colorNRF)]; //memory space that will contains the usingned int data of the word sent
+   for(int i = 0;i<sizeof(colorNRF);i++){
+     data[i]=uint8_t(colorNRF[i]); //converter from char (ex:"r345") to unsigned int
+   }
+
+//data sent
+nrf24.send(data, sizeof(data));
+nrf24.waitPacketSent();
 ```
+- The first part is the declaration of the word to send. As you might guess, the order to change the slave's color is composed of three messages, red, green and blue symbolized by the chars 'r', 'g' and 'b'.
+
+- The second part will construct the messages based on the preview declaration word and the color's value that is from 0 to 255.
+
+- Finally, the module send the data to wait for an acknowledgment.
 
 # My networks
 
